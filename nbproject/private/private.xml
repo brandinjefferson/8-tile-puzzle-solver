@@ -3,7 +3,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/brand_000/Documents/NetBeansProjects/8%20Tile%20Puzzle%20Solver/src/pkg8/tile/puzzle/solver/AStar.java</file>
+            <file>file:/C:/Users/brand_000/Documents/NetBeansProjects/8%20Tile%20Puzzle%20Solver/test/pkg8/tile/puzzle/tests/PuzzleTest.java</file>
+            <file>file:/C:/Users/brand_000/Documents/NetBeansProjects/8%20Tile%20Puzzle%20Solver/src/pkg8/tile/puzzle/solver/PuzzleState.java</file>
             <file>file:/C:/Users/brand_000/Documents/NetBeansProjects/8%20Tile%20Puzzle%20Solver/src/pkg8/tile/puzzle/solver/TilePuzzleSolver.java</file>
         </group>
     </open-files>
