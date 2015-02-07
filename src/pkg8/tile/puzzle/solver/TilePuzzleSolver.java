@@ -17,12 +17,12 @@ public class TilePuzzleSolver {
     /*
     Description: The current state of the grid.
     */
-    static ArrayList<String> puzzle = new ArrayList<>();
+    static ArrayList<Integer> puzzle = new ArrayList<>();
     /*
     Description: Contains the options that were deemed the least costly to
     reach the end result.
     */
-    static ArrayList<ArrayList<String>> closed = new ArrayList<>();
+    static ArrayList<PuzzleState> closed = new ArrayList<>();
     /*
     Description: Contains all of the possible options of movement that haven't
     been chosen yet.
@@ -32,22 +32,40 @@ public class TilePuzzleSolver {
     Description: The current ID value to use for a new puzzle state.
     */
     static int curID = 0;
+    /*
+    Description: The current goal state.
+    */
+    static ArrayList<Integer> goalState = new ArrayList<>();
+    static Scanner reader = new Scanner(System.in);
     
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        initPuzzle();
-        displayGrid();
+        try {
+            System.out.println("Starting State");
+            puzzle = initPuzzle();
+            System.out.println("Goal State");
+            goalState = initPuzzle();
+            if (isSolvable()){
+                AStar();
+            }
+            else {
+                System.out.println("No solvable route available.");
+            }
+        } catch (Exception e){
+            System.out.println(e.getMessage());
+        }
     }
     
-    public static void initPuzzle(){
-        Scanner reader = new Scanner(System.in);
-        System.out.println("Insert the numbers 0 through 8 in any order with no spaces in between. "
-                + "0 represents the space.");
+    public static ArrayList<Integer> initPuzzle() throws Exception {
+        System.out.println("Insert the numbers 1 through 9 in any order with no spaces in between. "
+                + "9 represents the space.");
         System.out.print("Enter: ");
-        String settings = reader.nextLine();
+        String settings = new String();
+        if (reader.hasNextLine()) settings = reader.nextLine();
         String[] temp = settings.split("");
+        ArrayList<Integer> t2 = new ArrayList<>();
         while (!checkLength(temp.length) && !checkNumbers(temp)){
             System.out.println("Follow the directions.");
             System.out.print("Enter: ");
@@ -55,8 +73,9 @@ public class TilePuzzleSolver {
             temp = settings.split("");
         }
         for (String t : temp){
-            puzzle.add(t);
+            t2.add(Integer.parseInt(t));
         }
+        return t2;
     }
     
     private static boolean checkLength(int length){
@@ -86,56 +105,101 @@ public class TilePuzzleSolver {
         return true;
     }
     
-    public static void displayGrid(){
+    public static void displayGrid(ArrayList<Integer> curWorld){
         for (int i=0;i<9;i++){
             if ((i+1)%3 == 0)
-                if (puzzle.get(i).equals("0")) System.out.println(" ");
-                else System.out.println(puzzle.get(i));
+                if (curWorld.get(i) == 9) System.out.println(" ");
+                else System.out.println(curWorld.get(i));
             else 
-                if (puzzle.get(i).equals("0")) System.out.print(" ");
-                else System.out.print(puzzle.get(i));
+                if (curWorld.get(i) == 9) System.out.print(" ");
+                else System.out.print(curWorld.get(i));
         }
     }
     
     public static void AStar(){
-        open = new PriorityQueue<>();
-        closed = new ArrayList<>();
-        ArrayList<String> curState;
         PuzzleState curWorld = new PuzzleState(puzzle,curID);
+        curWorld.setFValue(goalState, 0);
         open.add(curWorld);
         curID++;
-        
+        Integer level = 0;
         while (!open.isEmpty()){
-            curState = open.poll().getState();
-            if (checkGoal(curState)){
-                //Display closed path
-                //Exit function
+            curWorld = open.poll();
+            //System.out.println(curWorld.getState());
+            level++;
+            if (curWorld.check(goalState)){
+                System.out.println("Printing results.");
+                /*closed.add(curWorld);
+                for (PuzzleState fin : closed){
+                    displayGrid(fin.getState());
+                    System.out.println();
+                }*/
+                //Work on displaying. May be other probs, but this is one.
+                Stack<PuzzleState> display = new Stack<>();
+                while (curWorld != null){
+                    display.push(curWorld);
+                    curWorld = curWorld.getParent();
+                }
+                while (!display.empty()){
+                    curWorld = display.pop();
+                    displayGrid(curWorld.getState());
+                }
+                return;
             }
             else {
-                ArrayList<PuzzleState> children = generateChildren();
+                ArrayList<PuzzleState> children = generateChildren(curWorld.getState());
+                //System.out.println("Children made.");
                 for (PuzzleState child : children){
-                    
+                    Boolean inOpen = false,inClosed = false;
+                    if (open.contains(child)) inOpen = true;
+                    if (closed.contains(child)) inClosed = true;
+                    child.setFValue(goalState,level);
+                    //System.out.println("F Value: " + child.getFValue());
+                    if (!inOpen && !inClosed){
+                        //System.out.println("Open and Closed don't contain child.");
+                        child.setParent(curWorld);
+                        open.add(child);
+                    }
+                    else if (inOpen){
+                        //System.out.println("Open contains child.");
+                        Iterator<PuzzleState> it = open.iterator();
+                        while (it.hasNext()){
+                            PuzzleState oldChild = it.next();
+                            if (oldChild.equals(child) &&
+                                    oldChild.getFValue() > child.getFValue()){
+                                open.remove(oldChild);
+                                open.add(child);
+                            }
+                        }
+                    }
+                    else if (inClosed){
+                        //System.out.println("Closed contains child.");
+                        for (int i=0;i<closed.size();i++){
+                            PuzzleState it = closed.get(i);
+                            if (it.equals(child) &&
+                                    it.getFValue() > child.getFValue()){
+                                closed.remove(i);
+                                //System.out.println(it.getFValue());
+                                open.add(child);
+                                //System.out.println(child.getFValue());
+                            }
+                        }
+                    }
                 }
             }
+            closed.add(curWorld);
+            //System.out.println("End of iteration.");
         }
+        System.out.println("There was no solution.");
     }
     
-    /*
-    Description: Compares the given puzzle's state to the goal state. If they
-        are identical, then return true.
-    */
-    private static boolean checkGoal(ArrayList<String> curState){
-        for (int i=0;i<8;i++){
-            if (!curState.get(i).equals(String.valueOf(i+1))) return false;
-        }
-        return (curState.get(8).equals("0"));
-    }
     
-    private static ArrayList<PuzzleState> generateChildren(){
+    
+    private static ArrayList<PuzzleState> generateChildren(ArrayList<Integer> x){
+        //System.out.println("Generating children.");
         //Search for the blank space
         int pos = -1;
         for (int i=0;i<9;i++){
-            if (puzzle.get(i).equals("0")){
+            if (x.get(i) == 9){
                 pos = i;
             }
             if (pos > -1) break;
@@ -145,59 +209,83 @@ public class TilePuzzleSolver {
             //return;
         }
         
-        ArrayList<String> temp;
+        ArrayList<Integer> temp = new ArrayList<>();
         PuzzleState curWorld;
         ArrayList<PuzzleState> children = new ArrayList<>();
-        String cur;
+        Integer cur;
         //Check if north move is possible.
         if (pos > 2) {
-            temp = copyCurrentPuzzle();
-            cur = temp.remove(pos-3);
-            temp.add(pos-3, temp.remove(pos));
-            temp.add(pos,cur);
+            //System.out.println("North");
+            temp.clear();
+            temp.addAll(x);
+            cur = temp.get(pos-3);
+            temp.set(pos-3, temp.get(pos));
+            temp.set(pos,cur);
             curWorld = new PuzzleState(temp,curID);
             children.add(curWorld);
+            //System.out.println(curWorld.getState());
             curID++;
         }
         //Check if south move is possible.
         if (pos < 6){
-            temp = copyCurrentPuzzle();
-            cur = temp.remove(pos+3);
-            temp.add(pos+3, temp.remove(pos));
-            temp.add(pos,cur);
+            //System.out.println("South");
+            temp.clear();
+            temp.addAll(x);
+            cur = temp.get(pos+3);
+            temp.set(pos+3, temp.get(pos));
+            temp.set(pos,cur);
             curWorld = new PuzzleState(temp,curID);
             children.add(curWorld);
+            //System.out.println(curWorld.getState());
             curID++;
         }
         //Check if west move is possible.
         if (pos%3 != 0){
-            temp = copyCurrentPuzzle();
-            cur = temp.remove(pos-1);
-            temp.add(pos-1, temp.remove(pos));
-            temp.add(pos,cur);
+            //System.out.println("West");
+            temp.clear();
+            temp.addAll(x);
+            cur = temp.get(pos-1);
+            temp.set(pos-1, temp.get(pos));
+            temp.set(pos,cur);
             curWorld = new PuzzleState(temp,curID);
             children.add(curWorld);
+            //System.out.println(curWorld.getState());
             curID++;
         }
         //Check if east move is possible
         if ((pos+1)%3 != 0){
-            temp = copyCurrentPuzzle();
-            cur = temp.remove(pos+1);
-            temp.add(pos+1, temp.remove(pos));
-            temp.add(pos,cur);
+            //System.out.println("East");
+            temp.clear();
+            temp.addAll(x);
+            cur = temp.get(pos+1);
+            temp.set(pos+1, temp.get(pos));
+            temp.set(pos,cur);
             curWorld = new PuzzleState(temp,curID);
             children.add(curWorld);
+            //System.out.println(curWorld.getState());
             curID++;
         }
         return children;
     }
     
-    private static ArrayList<String> copyCurrentPuzzle(){
-        ArrayList<String> t = new ArrayList<>();
-        for (String i : puzzle){
-            t.add(i);
+    /**
+     * Description: Checks the number of inversions; if it is positive, then 
+     * true is returned.
+     * @return 
+     */
+    private static boolean isSolvable(){
+        Integer current, inversions=0;
+        for (int i=0;i<9;i++){
+            current = puzzle.get(i);
+            if (current != 9){
+                for (int j=(i+1);j<9;j++){
+                    if (current > puzzle.get(j)) inversions++;
+                }
+            }
         }
-        return t;
+        if (inversions%2==0) return true;
+        
+        return false;
     }
     
 }
