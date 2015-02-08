@@ -50,9 +50,9 @@ public class PuzzleTest {
             Integer[] g = {1,2,3,4,5,6,7,8,9};
             ArrayList<Integer> a1 = new ArrayList<>();
             
-            PuzzleState one = new PuzzleState(a1,  1);
-            PuzzleState two = new PuzzleState(a1, 2);
-            PuzzleState t3 = new PuzzleState(a1, 3);
+            PuzzleState one = new PuzzleState(a1);
+            PuzzleState two = new PuzzleState(a1);
+            PuzzleState t3 = new PuzzleState(a1);
             two.setParent(one);
             t3.setParent(two);
 
@@ -86,9 +86,9 @@ public class PuzzleTest {
             b.add(t[in]);
             goal.add(g[in]);
         }
-        PuzzleState one = new PuzzleState(a,  1);
-        PuzzleState two = new PuzzleState(b, 2);
-        PuzzleState t3 = new PuzzleState(goal,3);
+        PuzzleState one = new PuzzleState(a);
+        PuzzleState two = new PuzzleState(b);
+        PuzzleState t3 = new PuzzleState(goal);
         
         two.setParent(one);
         t3.setParent(two);

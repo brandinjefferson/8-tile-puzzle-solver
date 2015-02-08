@@ -54,7 +54,7 @@ public class TilePuzzleSolver {
                 System.out.println("No solvable route available.");
             }
         } catch (Exception e){
-            System.out.println(e.getMessage());
+            System.out.println(e.getCause());
         }
     }
     
@@ -117,15 +117,13 @@ public class TilePuzzleSolver {
     }
     
     public static void AStar(){
-        PuzzleState curWorld = new PuzzleState(puzzle,curID);
-        curWorld.setFValue(goalState, 0);
+        PuzzleState curWorld = new PuzzleState(puzzle);
+        curWorld.setFValue(goalState,0);
         open.add(curWorld);
         curID++;
-        Integer level = 0;
         while (!open.isEmpty()){
             curWorld = open.poll();
             //System.out.println(curWorld.getState());
-            level++;
             if (curWorld.check(goalState)){
                 System.out.println("Printing results.");
                 /*closed.add(curWorld);
@@ -142,6 +140,7 @@ public class TilePuzzleSolver {
                 while (!display.empty()){
                     curWorld = display.pop();
                     displayGrid(curWorld.getState());
+                    System.out.println("-");
                 }
                 return;
             }
@@ -152,27 +151,29 @@ public class TilePuzzleSolver {
                     Boolean inOpen = false,inClosed = false;
                     if (open.contains(child)) inOpen = true;
                     if (closed.contains(child)) inClosed = true;
-                    child.setFValue(goalState,level);
-                    //System.out.println("F Value: " + child.getFValue());
+                    child.setFValue(goalState,curWorld.getDepth()+1);
+                    child.setParent(curWorld);
                     if (!inOpen && !inClosed){
-                        //System.out.println("Open and Closed don't contain child.");
-                        child.setParent(curWorld);
+                        System.out.println("Open and Closed don't contain child.");
                         open.add(child);
                     }
+                    //Something must be wrong with this.
                     else if (inOpen){
-                        //System.out.println("Open contains child.");
+                        System.out.println("Open contains child.");
                         Iterator<PuzzleState> it = open.iterator();
                         while (it.hasNext()){
                             PuzzleState oldChild = it.next();
                             if (oldChild.equals(child) &&
                                     oldChild.getFValue() > child.getFValue()){
                                 open.remove(oldChild);
+                                System.out.println(oldChild.getState());
                                 open.add(child);
+                                System.out.println(child.getState());
                             }
                         }
                     }
                     else if (inClosed){
-                        //System.out.println("Closed contains child.");
+                        System.out.println("Closed contains child.");
                         for (int i=0;i<closed.size();i++){
                             PuzzleState it = closed.get(i);
                             if (it.equals(child) &&
@@ -187,13 +188,16 @@ public class TilePuzzleSolver {
                 }
             }
             closed.add(curWorld);
-            //System.out.println("End of iteration.");
+            System.out.println("End of iteration.");
         }
         System.out.println("There was no solution.");
     }
     
-    
-    
+    /**
+     * Description: Generates the children of a given state.
+     * @param x
+     * @return 
+     */
     private static ArrayList<PuzzleState> generateChildren(ArrayList<Integer> x){
         //System.out.println("Generating children.");
         //Search for the blank space
@@ -221,7 +225,7 @@ public class TilePuzzleSolver {
             cur = temp.get(pos-3);
             temp.set(pos-3, temp.get(pos));
             temp.set(pos,cur);
-            curWorld = new PuzzleState(temp,curID);
+            curWorld = new PuzzleState(temp);
             children.add(curWorld);
             //System.out.println(curWorld.getState());
             curID++;
@@ -234,7 +238,7 @@ public class TilePuzzleSolver {
             cur = temp.get(pos+3);
             temp.set(pos+3, temp.get(pos));
             temp.set(pos,cur);
-            curWorld = new PuzzleState(temp,curID);
+            curWorld = new PuzzleState(temp);
             children.add(curWorld);
             //System.out.println(curWorld.getState());
             curID++;
@@ -247,7 +251,7 @@ public class TilePuzzleSolver {
             cur = temp.get(pos-1);
             temp.set(pos-1, temp.get(pos));
             temp.set(pos,cur);
-            curWorld = new PuzzleState(temp,curID);
+            curWorld = new PuzzleState(temp);
             children.add(curWorld);
             //System.out.println(curWorld.getState());
             curID++;
@@ -260,7 +264,7 @@ public class TilePuzzleSolver {
             cur = temp.get(pos+1);
             temp.set(pos+1, temp.get(pos));
             temp.set(pos,cur);
-            curWorld = new PuzzleState(temp,curID);
+            curWorld = new PuzzleState(temp);
             children.add(curWorld);
             //System.out.println(curWorld.getState());
             curID++;
@@ -277,10 +281,8 @@ public class TilePuzzleSolver {
         Integer current, inversions=0;
         for (int i=0;i<9;i++){
             current = puzzle.get(i);
-            if (current != 9){
-                for (int j=(i+1);j<9;j++){
-                    if (current > puzzle.get(j)) inversions++;
-                }
+            for (int j=(i+1);j<9;j++){
+                if (current > puzzle.get(j)) inversions++;
             }
         }
         if (inversions%2==0) return true;

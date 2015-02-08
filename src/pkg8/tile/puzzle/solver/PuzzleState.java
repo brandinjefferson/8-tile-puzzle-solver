@@ -22,38 +22,50 @@ public class PuzzleState implements Comparator, Comparable {
     */
     private Integer fvalue;
     
-    /*
-    Description: An ID used when searching for this state.
-    */
-    private Integer puzzleID;
+    /**
+     * Description: The current level of this child; represents g(n).
+     */
+    private Integer depth;
     /**
      * Description: The child's parent state.
      */
     private PuzzleState parent = null;
     
-    /*
-    Description: Initializes the puzzle's state and assigns an fvalue based
-        on the number of out of place tiles.
-    */
-    public PuzzleState(ArrayList<Integer> givenState, Integer id){
+    /**
+     * Description: Initializes the puzzle's state.
+     * @param givenState The current state of the puzzle in array form.
+     */
+    public PuzzleState(ArrayList<Integer> givenState){
         state = new ArrayList<>();
         state.addAll(givenState);
-        puzzleID = id;
+        depth = 0;
         fvalue = 0;
     }
 
+    /**
+     * Description: Returns this state's parent.
+     * @return 
+     */
     public PuzzleState getParent() {
         return parent;
     }
 
+    /**
+     * Description: Sets this state's parent.
+     * @param parent 
+     */
     public void setParent(PuzzleState parent) {
         this.parent = parent;
     }
     
     
-    
-    public void setFValue(ArrayList<Integer> goal,Integer level){
-        fvalue = level;
+    /**
+     * Description: Sets the FValue according to the sum of distances heuristic.
+     * @param goal
+     * @param d The depth [g(n)]
+     */
+    public void setFValue(ArrayList<Integer> goal, Integer d){
+        depth = d;
         Integer[] coord;
         int sum = 0;
         for (int i=0;i<9;i++){
@@ -62,7 +74,7 @@ public class PuzzleState implements Comparator, Comparable {
             coord = findCoordinates(i,pos);
             sum = Math.abs((coord[2] - coord[0]) + (coord[3] -coord[1])) + sum;
         }
-        fvalue+=sum;
+        fvalue = depth + sum;
     }
     
     /**
@@ -150,8 +162,8 @@ public class PuzzleState implements Comparator, Comparable {
         return fvalue;
     }
     
-    public Integer getID(){
-        return puzzleID;
+    public Integer getDepth(){
+        return depth;
     }
     
     /**
@@ -182,11 +194,13 @@ public class PuzzleState implements Comparator, Comparable {
         else return 0;
     }
     
-    /*
-    Description: For comparisons between the fvalues of states in the heap. 
+    /**
+     * Description: For comparisons between the fvalues of states in the heap; 
         Returns -1 if the current value is less than the given one, 1 if it is
         greater, and a 0 if they are equal.
-    */
+     * @param one
+     * @return 
+     */
     @Override
     public int compareTo(Object one){
         if (this == one) return 0;
