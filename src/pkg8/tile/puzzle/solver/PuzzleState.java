@@ -1,15 +1,11 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package pkg8.tile.puzzle.solver;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+
 /**
- *
- * @author brand_000
+ * Description: Represents an instance of a puzzle case.
+ * @author bej0843
  */
 public class PuzzleState implements Comparator, Comparable {
     
@@ -18,7 +14,7 @@ public class PuzzleState implements Comparator, Comparable {
     */
     private final ArrayList<Integer> state;
     /*
-    Description: The number of tiles still out of place.
+    Description: The sum of distances between the tiles and their goal positions.
     */
     private Integer fvalue;
     
@@ -81,8 +77,8 @@ public class PuzzleState implements Comparator, Comparable {
      * Description: Returns an integer array containing the coordinates of the
      * given variables if you were to look at the 8-puzzle array as a grid. Ex:
      * Index 0 would be coordinates (1,1).
-     * @param start
-     * @param goal
+     * @param start The array position the number is current at.
+     * @param goal The array position it needs to reach.
      * @return 
      */
     private Integer[] findCoordinates(Integer start, Integer goal){
@@ -154,28 +150,47 @@ public class PuzzleState implements Comparator, Comparable {
         return coord;
     }
     
+    /**
+     * Description: Returns the state.
+     * @return 
+     */
     public ArrayList<Integer> getState(){
         return state;
     }
     
+    /**
+     * Description: Returns the case's f-value.
+     * @return 
+     */
     public Integer getFValue(){
         return fvalue;
     }
     
+    /**
+     * Description: Returns the case's depth.
+     * @return 
+     */
     public Integer getDepth(){
         return depth;
     }
     
     /**
-     * Description: Compares the current state to a given one.
-     * @param given - A state of the puzzle to checked against. Returns true
+     * Description: Compares the current state to a given one. Returns true
      * they are equal.
+     * @param given - A state of the puzzle to checked against. 
      * @return 
      */
     public boolean check(ArrayList<Integer> given){
         return (this.state.equals(given));
     }
     
+    /**
+     * Description: Overrides Java's equal method so that, when searching for 
+     * an object that should be equal to the calling case, only their state
+     * arrays are compared.
+     * @param o
+     * @return 
+     */
     @Override
     public boolean equals(Object o){
         if (o == null) return false;
@@ -185,6 +200,13 @@ public class PuzzleState implements Comparator, Comparable {
         return (this.state.equals(o1.state));
     }
     
+    /**
+     * Description: Overrides Java's compare method, so that if two PuzzleState
+     * cases are compared, it's only their state arrays that get compared.
+     * @param one
+     * @param two
+     * @return 
+     */
     @Override
     public int compare(Object one, Object two){
         PuzzleState o1 = (PuzzleState)one;

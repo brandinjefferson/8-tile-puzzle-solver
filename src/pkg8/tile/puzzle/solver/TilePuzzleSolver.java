@@ -1,8 +1,13 @@
-/*
+/* Name: 8 Puzzle Solver
  * Description: A puzzle where the goal is to take a 3 x 3 grid filled with 
     the numbers 1-8 and a blank space in a random assortment and, using the most
-    optimal path, reorder them so that they match a certain result. The path 
-    works by moving a neigboring digit into the empty square.
+    optimal path through the A* algorithm, reorder them so that they match a 
+    certain result. The path works by moving a neigboring digit into the empty 
+    square.
+ * Input: A set of 9 digits together with no spaces twice. First to represent
+    the starting state and second to represent the goal state.
+ * Output: A list of states that display the most optimal path from the starting
+    state to the goal state. Each is in grid format.
  */
 package pkg8.tile.puzzle.solver;
 
@@ -10,32 +15,31 @@ import java.util.*;
 
 
 /**
- *
- * @author brand_000
+ * Description: Solves any 8 puzzle given, if it's solvable.
+ * @author bej0843
  */
 public class TilePuzzleSolver {
-    /*
-    Description: The current state of the grid.
+    /**
+    Description: The initial state of the grid.
     */
     static ArrayList<Integer> puzzle = new ArrayList<>();
-    /*
+    /**
     Description: Contains the options that were deemed the least costly to
     reach the end result.
     */
     static ArrayList<PuzzleState> closed = new ArrayList<>();
-    /*
+    /**
     Description: Contains all of the possible options of movement that haven't
     been chosen yet.
     */
     static PriorityQueue<PuzzleState> open = new PriorityQueue<>();
-    /*
-    Description: The current ID value to use for a new puzzle state.
-    */
-    static int curID = 0;
-    /*
+    /**
     Description: The current goal state.
     */
     static ArrayList<Integer> goalState = new ArrayList<>();
+    /**
+     * Description: Reads user's input.
+     */
     static Scanner reader = new Scanner(System.in);
     
     /**
@@ -54,10 +58,16 @@ public class TilePuzzleSolver {
                 System.out.println("No solvable route available.");
             }
         } catch (Exception e){
-            System.out.println(e.getCause());
+            System.out.println("Exception");
+            System.out.println(e.getLocalizedMessage());
         }
     }
     
+    /**
+     * Description: Asks the user for input to initialize the puzzle's state.
+     * @return
+     * @throws Exception 
+     */
     public static ArrayList<Integer> initPuzzle() throws Exception {
         System.out.println("Insert the numbers 1 through 9 in any order with no spaces in between. "
                 + "9 represents the space.");
@@ -66,7 +76,7 @@ public class TilePuzzleSolver {
         if (reader.hasNextLine()) settings = reader.nextLine();
         String[] temp = settings.split("");
         ArrayList<Integer> t2 = new ArrayList<>();
-        while (!checkLength(temp.length) && !checkNumbers(temp)){
+        while (!checkLength(temp.length) || !checkNumbers(temp)){
             System.out.println("Follow the directions.");
             System.out.print("Enter: ");
             settings = reader.nextLine();
@@ -78,16 +88,27 @@ public class TilePuzzleSolver {
         return t2;
     }
     
+    /**
+     * Description: Checks the length of the array and returns true if it is 
+     * equal to 9.
+     * @param length
+     * @return 
+     */
     private static boolean checkLength(int length){
         return length == 9;
     }
     
+    /**
+     * Description: Checks the numbers within the input to ensure it is correct. 
+     * Return true if the numbers are valid.
+     * @param array - The numbers in the input
+     * @return 
+     */
     private static boolean checkNumbers(String[] array){
         ArrayList<String> array2 = new ArrayList<>();
         for (String t : array){
             if (array2.contains(t)) return false;
             switch (t){
-                case "0":
                 case "1":
                 case "2":
                 case "3":
@@ -96,6 +117,7 @@ public class TilePuzzleSolver {
                 case "6":
                 case "7":
                 case "8":
+                case "9":
                     array2.add(t);
                     break;
                 default:
@@ -105,6 +127,10 @@ public class TilePuzzleSolver {
         return true;
     }
     
+    /**
+     * Description: Displays the given state as a 3 x 3 grid.
+     * @param curWorld - The given state.
+     */
     public static void displayGrid(ArrayList<Integer> curWorld){
         for (int i=0;i<9;i++){
             if ((i+1)%3 == 0)
@@ -116,21 +142,18 @@ public class TilePuzzleSolver {
         }
     }
     
+    /**
+     * Description: Implements the A* algorithm modified for the 8 puzzle. 
+     */
     public static void AStar(){
         PuzzleState curWorld = new PuzzleState(puzzle);
         curWorld.setFValue(goalState,0);
         open.add(curWorld);
-        curID++;
         while (!open.isEmpty()){
             curWorld = open.poll();
             //System.out.println(curWorld.getState());
             if (curWorld.check(goalState)){
                 System.out.println("Printing results.");
-                /*closed.add(curWorld);
-                for (PuzzleState fin : closed){
-                    displayGrid(fin.getState());
-                    System.out.println();
-                }*/
                 //Work on displaying. May be other probs, but this is one.
                 Stack<PuzzleState> display = new Stack<>();
                 while (curWorld != null){
@@ -154,26 +177,25 @@ public class TilePuzzleSolver {
                     child.setFValue(goalState,curWorld.getDepth()+1);
                     child.setParent(curWorld);
                     if (!inOpen && !inClosed){
-                        System.out.println("Open and Closed don't contain child.");
+                        //System.out.println("Open and Closed don't contain child.");
                         open.add(child);
                     }
                     //Something must be wrong with this.
                     else if (inOpen){
-                        System.out.println("Open contains child.");
+                        //System.out.println("Open contains child.");
                         Iterator<PuzzleState> it = open.iterator();
                         while (it.hasNext()){
                             PuzzleState oldChild = it.next();
                             if (oldChild.equals(child) &&
                                     oldChild.getFValue() > child.getFValue()){
                                 open.remove(oldChild);
-                                System.out.println(oldChild.getState());
                                 open.add(child);
-                                System.out.println(child.getState());
+                                break;
                             }
                         }
                     }
                     else if (inClosed){
-                        System.out.println("Closed contains child.");
+                        //System.out.println("Closed contains child.");
                         for (int i=0;i<closed.size();i++){
                             PuzzleState it = closed.get(i);
                             if (it.equals(child) &&
@@ -182,13 +204,14 @@ public class TilePuzzleSolver {
                                 //System.out.println(it.getFValue());
                                 open.add(child);
                                 //System.out.println(child.getFValue());
+                                break;
                             }
                         }
                     }
                 }
             }
             closed.add(curWorld);
-            System.out.println("End of iteration.");
+            //System.out.println("End of iteration.");
         }
         System.out.println("There was no solution.");
     }
@@ -209,8 +232,7 @@ public class TilePuzzleSolver {
             if (pos > -1) break;
         }
         if (pos == -1){
-            System.out.println("0 not found.");
-            //return;
+            System.out.println("9 not found.");
         }
         
         ArrayList<Integer> temp = new ArrayList<>();
@@ -227,8 +249,6 @@ public class TilePuzzleSolver {
             temp.set(pos,cur);
             curWorld = new PuzzleState(temp);
             children.add(curWorld);
-            //System.out.println(curWorld.getState());
-            curID++;
         }
         //Check if south move is possible.
         if (pos < 6){
@@ -240,8 +260,6 @@ public class TilePuzzleSolver {
             temp.set(pos,cur);
             curWorld = new PuzzleState(temp);
             children.add(curWorld);
-            //System.out.println(curWorld.getState());
-            curID++;
         }
         //Check if west move is possible.
         if (pos%3 != 0){
@@ -253,8 +271,6 @@ public class TilePuzzleSolver {
             temp.set(pos,cur);
             curWorld = new PuzzleState(temp);
             children.add(curWorld);
-            //System.out.println(curWorld.getState());
-            curID++;
         }
         //Check if east move is possible
         if ((pos+1)%3 != 0){
@@ -266,8 +282,6 @@ public class TilePuzzleSolver {
             temp.set(pos,cur);
             curWorld = new PuzzleState(temp);
             children.add(curWorld);
-            //System.out.println(curWorld.getState());
-            curID++;
         }
         return children;
     }
